@@ -14,16 +14,22 @@ struct ElectriCheck{
 //can be any value though
 float ConversionRate = 0;
 
-
+//startup and saving stuff
 void LoadConversionRate(float *conver);
 void SaveConversionRate(float *conver);
+
 void header(string txt);
 void MenuAlign(string text, int width);
+
 void ConfigureRate(float *conver);
+void ShowApplianceUsage(string houseName);
+void RemoveHouse(string houseName);
+
 float compute(float *conver, float kwh, int time);
 void NewHouse(ElectriCheck *EleCheck, float *conver);
 void ExistingHouse();
 void CallFunctions();
+
 
 
 int main(){
@@ -99,11 +105,103 @@ void ConfigureRate(float *conver){
     }
 }
 
+void ShowApplianceUsage(string houseName){
+    system("cls||clear");
+    header("Appliance Usage");
+
+    string filename = houseName + ".txt";
+    ifstream HouseFile(filename.c_str());
+
+    if(!HouseFile){
+        cout << "Could not open file for " << houseName << "." << endl;
+        cout << "\nPress Enter to return to menu...";
+        cin.ignore();
+        cin.get();
+        return;
+    }
+
+    string line;
+
+    cout << "House: " << houseName << endl;
+    cout << "------------------------------------------------------" << endl;
+
+    while(getline(HouseFile, line)){
+        cout << line << endl;
+    }
+
+    HouseFile.close();
+
+    cout << "\nPress Enter to return to menu...";
+    cin.ignore();
+    cin.get();
+}
+
+void RemoveHouse(string houseName){
+    system("cls||clear");
+    header("Remove House");
+
+    ifstream CountFile("HouseNames.txt");
+
+    if(!CountFile){
+        cout << "HouseNames.txt not found." << endl;
+        cout << "\nPress Enter to return to menu...";
+        cin.ignore();
+        cin.get();
+        return;
+    }
+
+    int count = 0;
+    string house;
+
+    while(getline(CountFile, house)){
+        if(house != "" && house != houseName){
+            count++;
+        }
+    }
+
+    CountFile.close();
+
+    string *houses = new string[count];
+
+    ifstream HouseName("HouseNames.txt");
+
+    int index = 0;
+
+    while(getline(HouseName, house)){
+        if(house != "" && house != houseName){
+            houses[index] = house;
+            index++;
+        }
+    }
+
+    HouseName.close();
+
+    ofstream UpdatedHouseName("HouseNames.txt");
+
+    for(int i = 0; i < count; i++){
+        UpdatedHouseName << houses[i] << endl;
+    }
+
+    UpdatedHouseName.close();
+
+    delete[] houses;
+
+    string filename = houseName + ".txt";
+    remove(filename.c_str());
+
+    cout << houseName << " has been removed." << endl;
+
+    cout << "\nPress Enter to return to menu...";
+    cin.ignore();
+    cin.get();
+}
+
 float compute(float *conver, float kwh, int time){
     float cost=0;
     cost=*conver*(kwh*time);
     return cost;
 }
+
 void NewHouse(ElectriCheck *EleCheck, float *conver){
     system("cls||clear");
     header("New House");
@@ -145,10 +243,100 @@ void NewHouse(ElectriCheck *EleCheck, float *conver){
     CurrentOwner.close();
     delete[] Appliances;
 }
-void ExistingHouse(){
-    header("Recorded House's");
 
+void ExistingHouse(){
+    system("cls||clear");
+    header("Recorded Houses");
+
+    ifstream CountFile("HouseNames.txt");
+
+    if(!CountFile){
+        cout << "No recorded houses found." << endl;
+        cout << "\nPress Enter to return to menu...";
+        cin.ignore();
+        cin.get();
+        return;
+    }
+
+    int count = 0;
+    string house;
+
+    while(getline(CountFile, house)){
+        if(house != ""){
+            count++;
+        }
+    }
+
+    CountFile.close();
+
+    if(count == 0){
+        cout << "No recorded houses found." << endl;
+        cout << "\nPress Enter to return to menu...";
+        cin.ignore();
+        cin.get();
+        return;
+    }
+
+    string *houses = new string[count];
+
+    ifstream HouseName("HouseNames.txt");
+
+    int index = 0;
+
+    while(getline(HouseName, house)){
+        if(house != ""){
+            houses[index] = house;
+            index++;
+        }
+    }
+
+    HouseName.close();
+
+    for(int i = 0; i < count; i++){
+        cout << i + 1 << ". " << houses[i] << endl;
+    }
+
+    int houseChoice;
+    cout << "\nSelect a house number: ";
+    cin >> houseChoice;
+
+    if(houseChoice < 1 || houseChoice > count){
+        cout << "Invalid house number." << endl;
+        delete[] houses;
+
+        cout << "\nPress Enter to return to menu...";
+        cin.ignore();
+        cin.get();
+        return;
+    }
+
+    string selectedHouse = houses[houseChoice - 1];
+
+    delete[] houses;
+
+    system("cls||clear");
+    header(selectedHouse);
+
+    int option;
+    cout << "1. Show Appliances usage" << endl;
+    cout << "2. Remove house" << endl;
+    cout << "\nEnter Option: ";
+    cin >> option;
+
+    if(option == 1){
+        ShowApplianceUsage(selectedHouse);
+    }
+    else if(option == 2){
+        RemoveHouse(selectedHouse);
+    }
+    else{
+        cout << "Invalid option." << endl;
+        cout << "\nPress Enter to return to menu...";
+        cin.ignore();
+        cin.get();
+    }
 }
+
 void CallFunctions(){
     system("cls||clear");
     ElectriCheck *EleCheck=new ElectriCheck;
