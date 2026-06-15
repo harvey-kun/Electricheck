@@ -18,6 +18,7 @@ float ConversionRate = 0;
 void LoadConversionRate(float *conver);
 void SaveConversionRate(float *conver);
 
+//for the text output stuff
 void header(string txt);
 void MenuAlign(string text, int width);
 
@@ -297,8 +298,13 @@ void ExistingHouse(){
     }
 
     int houseChoice;
-    cout << "\nSelect a house number: ";
+    cout << "\nSelect a house number[0 to go back]: ";
     cin >> houseChoice;
+
+    if(houseChoice == 0){
+        delete[] houses;
+        return;
+    }
 
     if(houseChoice < 1 || houseChoice > count){
         cout << "Invalid house number." << endl;
@@ -320,6 +326,7 @@ void ExistingHouse(){
     int option;
     cout << "1. Show Appliances usage" << endl;
     cout << "2. Remove house" << endl;
+    cout << "3. Back" << endl;
     cout << "\nEnter Option: ";
     cin >> option;
 
@@ -328,6 +335,10 @@ void ExistingHouse(){
     }
     else if(option == 2){
         RemoveHouse(selectedHouse);
+    }
+    else if(option == 3){
+        ExistingHouse();
+        return;
     }
     else{
         cout << "Invalid option." << endl;
