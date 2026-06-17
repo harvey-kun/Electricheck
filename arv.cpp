@@ -369,42 +369,31 @@ void ExistingHouse(){
 }
 
 void CallFunctions(){
-    system("cls||clear");
-    ElectriCheck *EleCheck=new ElectriCheck;
-    float *conversion=&ConversionRate;
-    int options=0;
-    header("ElectriCheck");
-    MenuAlign("1. New House", 45);
-    MenuAlign("2. Check Existing House", 56);
-    MenuAlign("3. Configure Utility Rates", 59);
-    MenuAlign("4. Exit", 40);
-    cout << "\n" << setw(30) << "Enter Option: ";
-    cin >> options;
+    ElectriCheck *EleCheck = new ElectriCheck;
+    float *conversion = &ConversionRate;
+    int options = 0;
 
-    if(options==1){
-        NewHouse(EleCheck, conversion);
-        delete EleCheck;
-        CallFunctions();
-    }
-    else if(options==2){
-        delete EleCheck;
+    do{
         system("cls||clear");
-        ExistingHouse();
-        CallFunctions();
-    }
-    else if(options==3){
-        delete EleCheck;
-        ConfigureRate(conversion);
-        CallFunctions();
-    }
-    else if(options==4){
-        delete EleCheck;
-        system("cls||clear");
-        return;
-    }
-    else{
-        delete EleCheck;
-        system("cls||clear");
-        CallFunctions();
-    }
+        header("ElectriCheck");
+        MenuAlign("1. New House", 45);
+        MenuAlign("2. Check Existing House", 56);
+        MenuAlign("3. Configure Utility Rates", 59);
+        MenuAlign("4. Exit", 40);
+        cout << "\n" << setw(30) << "Enter Option: ";
+        cin >> options;
+
+        if(options == 1){
+            NewHouse(EleCheck, conversion);
+        }
+        else if(options == 2){
+            ExistingHouse();
+        }
+        else if(options == 3){
+            ConfigureRate(conversion);
+        }
+    }while(options != 4);
+
+    delete EleCheck;
+    system("cls||clear");
 }
