@@ -115,24 +115,38 @@ void ShowApplianceUsage(string houseName){
 
     if(!HouseFile){
         cout << "Could not open file for " << houseName << "." << endl;
-        cout << "\nPress Enter to return to menu...";
+        cout << "\nPress Enter to return to menu";
         cin.ignore();
         cin.get();
         return;
     }
 
-    string line;
+    string line, appName, KWH, Usage;
 
     cout << "House: " << houseName << endl;
     cout << "------------------------------------------------------" << endl;
+    cout << left << setw(10) << "ID" << setw(15) << "Appliance" << setw(10) << "kWh" << setw(10) << "Time Usage" << endl;
+    cout << "------------------------------------------------------" << endl;
 
-    while(getline(HouseFile, line)){
-        cout << line << endl;
+    while(getline(HouseFile, line, ',')){
+        //reseter so it does not read the bill
+        appName = "";
+
+        getline(HouseFile, appName, ',');
+        getline(HouseFile, KWH, ',');
+        getline(HouseFile, Usage);
+
+        //check if the appliance name is empty so it can print the bill
+        if(appName.empty()) {
+            cout << "------------------------------------------------------" << endl;
+            cout << "Total Bill: " << line << endl;
+            break;
+        }
+        cout << left << setw(10) << line << setw(15) << appName << setw(10) << KWH << setw(10) << Usage << endl;
     }
-
     HouseFile.close();
 
-    cout << "\nPress Enter to return to menu...";
+    cout << "\nPress Enter to return to menu";
     cin.ignore();
     cin.get();
 }
@@ -145,7 +159,7 @@ void RemoveHouse(string houseName){
 
     if(!CountFile){
         cout << "HouseNames.txt not found." << endl;
-        cout << "\nPress Enter to return to menu...";
+        cout << "\nPress Enter to return to menu";
         cin.ignore();
         cin.get();
         return;
@@ -192,14 +206,14 @@ void RemoveHouse(string houseName){
 
     cout << houseName << " has been removed." << endl;
 
-    cout << "\nPress Enter to return to menu...";
+    cout << "\nPress Enter to return to menu";
     cin.ignore();
     cin.get();
 }
 
 float compute(float *conver, float kwh, int time){
     float cost=0;
-    cost=*conver*(kwh*time);
+    cost = *conver*(kwh*(time/60.0));
     return cost;
 }
 
@@ -236,12 +250,19 @@ void NewHouse(ElectriCheck *EleCheck, float *conver){
                     <<Appliances[i].time << endl;
         cin.ignore();
     }
+    system("cls||clear");
+    cout << "--------------------------------------------------------" << endl;
+    cout << left << setw(10) << "ID" << setw(15) << "Appliance" << setw(10) << "kW" << setw(10) << "Time Usage" << endl;
+    cout << "--------------------------------------------------------" << endl;
+    for(int i=0; i<NumAppliances; i++){
+        cout << left << setw(10) << i+1 << setw(15) << Appliances[i].appliance << setw(10) << Appliances[i].kWh << setw(10) << Appliances[i].time << endl;
+    }
     cout << "\n------------------------------------------------------" << endl;
     cout << "Total Bill: " << totalBill << endl;
     CurrentOwner<<totalBill<<endl;
-    int test;
-    cin >> test;
     CurrentOwner.close();
+    cout << "\nPress Enter to return to menu";
+    cin.get();
     delete[] Appliances;
 }
 
@@ -253,7 +274,7 @@ void ExistingHouse(){
 
     if(!CountFile){
         cout << "No recorded houses found." << endl;
-        cout << "\nPress Enter to return to menu...";
+        cout << "\nPress Enter to return to menu";
         cin.ignore();
         cin.get();
         return;
@@ -272,7 +293,7 @@ void ExistingHouse(){
 
     if(count == 0){
         cout << "No recorded houses found." << endl;
-        cout << "\nPress Enter to return to menu...";
+        cout << "\nPress Enter to return to menu";
         cin.ignore();
         cin.get();
         return;
@@ -310,7 +331,7 @@ void ExistingHouse(){
         cout << "Invalid house number." << endl;
         delete[] houses;
 
-        cout << "\nPress Enter to return to menu...";
+        cout << "\nPress Enter to return to menu";
         cin.ignore();
         cin.get();
         return;
@@ -342,7 +363,7 @@ void ExistingHouse(){
     }
     else{
         cout << "Invalid option." << endl;
-        cout << "\nPress Enter to return to menu...";
+        cout << "\nPress Enter to return to menu";
         cin.ignore();
         cin.get();
     }
@@ -363,22 +384,27 @@ void CallFunctions(){
 
     if(options==1){
         NewHouse(EleCheck, conversion);
+        delete EleCheck;
         CallFunctions();
     }
     else if(options==2){
-        system("cls");
+        delete EleCheck;
+        system("cls||clear");
         ExistingHouse();
         CallFunctions();
     }
     else if(options==3){
+        delete EleCheck;
         ConfigureRate(conversion);
         CallFunctions();
     }
     else if(options==4){
+        delete EleCheck;
         system("cls||clear");
         return;
     }
     else{
+        delete EleCheck;
         system("cls||clear");
         CallFunctions();
     }
