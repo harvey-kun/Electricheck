@@ -11,14 +11,14 @@ struct ElectriCheck{
     int time;
 };
 
-//can be any value though
+//Global variable
 float ConversionRate = 0;
 
-//startup and saving stuff
+//startup and save for conversion
 void LoadConversionRate(float *conver);
 void SaveConversionRate(float *conver);
 
-//Main selection
+//Main selection for Houses
 void NewHouse(ElectriCheck *EleCheck, float *conver);
 void ExistingHouse();
 void CallFunctions();
@@ -30,14 +30,13 @@ void MenuAlign(string text, int width);
 //Configuration and computation
 void ConfigureRate(float *conver);
 float compute(float *conver, float kwh, int time);
-
+//For the Functions of Existing House
 void ShowApplianceUsage(string houseName);
 void RemoveHouse(string houseName);
 
 int main(){
     LoadConversionRate(&ConversionRate);
     CallFunctions();
-    system("cls||clear");
     header("Program Closed.");
     return 0;
 }
@@ -88,7 +87,6 @@ void CallFunctions(){
         MenuAlign("4. Exit", 40);
         cout << "\n" << setw(30) << "Enter Option: ";
         cin >> options;
-        cin.ignore();
 
         if(options == 1){
             NewHouse(EleCheck, conversion);
@@ -129,7 +127,11 @@ void NewHouse(ElectriCheck *EleCheck, float *conver){
     cin >> NumAppliances;
     cin.ignore();
 
+    //for the appliances
     ElectriCheck *Appliances = new ElectriCheck[NumAppliances];
+    //for the weeklycost
+    float *WeeklyCosts = new float[NumAppliances];
+
     for(int i = 0; i < NumAppliances; i++){
         cout << "\nAppliance " << i+1 << endl;
         cout << "Enter Appliance Name: ";
@@ -138,30 +140,54 @@ void NewHouse(ElectriCheck *EleCheck, float *conver){
         cin >> Appliances[i].kWh;
         cout << "Enter use duration(Minutes): ";
         cin >> Appliances[i].time;
-        totalBill += compute(conver, Appliances[i].kWh, Appliances[i].time);
-        CurrentOwner << i+1 << ","
-                     << Appliances[i].appliance << ","
-                     << Appliances[i].kWh << ","
-                     << Appliances[i].time << endl;
+        //so its actually calculate per day now just times it to 30 so a month
+        totalBill += compute(conver, Appliances[i].kWh, Appliances[i].time) * 30;
+        //for the week ofcourse
+        WeeklyCosts[i] = compute(conver, Appliances[i].kWh, Appliances[i].time) * 7;
         cin.ignore();
-    }
+        }
+        //bubble sorting  highest to lowest on the weekly cost
+        for(int i = 0; i < NumAppliances - 1; i++){
+            for(int j = 0; j < NumAppliances - 1 - i; j++){
+                if(WeeklyCosts[j] < WeeklyCosts[j+1]){
+                    float tempCost = WeeklyCosts[j];
+                    WeeklyCosts[j] = WeeklyCosts[j+1];
+                    WeeklyCosts[j+1] = tempCost;
+
+                    ElectriCheck tempAppliance = Appliances[j];
+                    Appliances[j] = Appliances[j+1];
+                    Appliances[j+1] = tempAppliance;
+                }
+            }
+        }
+
+        // write to file in sorted order
+        for(int i = 0; i < NumAppliances; i++){
+            CurrentOwner << i+1 << ","
+                         << Appliances[i].appliance << ","
+                         << Appliances[i].kWh << ","
+                         << Appliances[i].time << ","
+                         << fixed << setprecision(2) << WeeklyCosts[i] << endl;
+
+        }
 
     system("cls||clear");
     cout << "--------------------------------------------------------" << endl;
-    cout << left << setw(10) << "ID" << setw(15) << "Appliance" << setw(10) << "kW" << setw(10) << "Time Usage" << endl;
+    cout << left << setw(4) << "ID" << setw(15) << "Appliance" << setw(7) << "kW" << setw(14) << "Time Usage" << setw(10) << "Per Week" << endl;
     cout << "--------------------------------------------------------" << endl;
     for(int i = 0; i < NumAppliances; i++){
-        cout << left << setw(10) << i+1 << setw(15) << Appliances[i].appliance << setw(10) << Appliances[i].kWh << setw(10) << Appliances[i].time << endl;
+        cout << left << setw(4) << i+1 << setw(15) << Appliances[i].appliance << setw(7) << Appliances[i].kWh << setw(14) << Appliances[i].time << setw(10) << fixed << setprecision(2) << WeeklyCosts[i] << endl;
     }
     cout << "\n------------------------------------------------------" << endl;
-    cout << "Total Bill: " << fixed << setprecision(2) << totalBill << endl;
+    cout << "Total Bill(Monthly): " << fixed << setprecision(2) << totalBill << endl;
     CurrentOwner << fixed << setprecision(2) << totalBill << endl;
     CurrentOwner.close();
     cout << "\nPress Enter to return to menu";
     cin.get();
     delete[] Appliances;
+    delete[] WeeklyCosts;
+    cout << right;
 }
-
 
 void ExistingHouse(){
     system("cls||clear");
@@ -315,11 +341,11 @@ void ShowApplianceUsage(string houseName){
         return;
     }
 
-    string line, appName, KWH, Usage;
+    string line, appName, KWH, Usage, WeeklyCost;
 
     cout << "House: " << houseName << endl;
     cout << "------------------------------------------------------" << endl;
-    cout << left << setw(10) << "ID" << setw(15) << "Appliance" << setw(10) << "kW" << setw(10) << "Time Usage" << endl;
+    cout << left << setw(4) << "ID" << setw(15) << "Appliance" << setw(7) << "kW" << setw(14) << "Time Usage" << setw(10) << "Per Week" << endl;
     cout << "------------------------------------------------------" << endl;
 
     while(getline(HouseFile, line, ',')){
@@ -328,7 +354,8 @@ void ShowApplianceUsage(string houseName){
 
         getline(HouseFile, appName, ',');
         getline(HouseFile, KWH, ',');
-        getline(HouseFile, Usage);
+        getline(HouseFile, Usage, ',');
+        getline(HouseFile, WeeklyCost);
 
         //check if the appliance name is empty so it can print the bill
         if(appName.empty()){
@@ -336,13 +363,14 @@ void ShowApplianceUsage(string houseName){
             cout << "Total Bill: " << line << endl;
             break;
         }
-        cout << left << setw(10) << line << setw(15) << appName << setw(10) << KWH << setw(10) << Usage << endl;
+        cout << left << setw(4) << line << setw(15) << appName << setw(7) << KWH << setw(14) << Usage << setw(10) << WeeklyCost << endl;
     }
     HouseFile.close();
 
     cout << "\nPress Enter to return to menu";
     cin.ignore();
     cin.get();
+    cout << right;
 }
 
 void RemoveHouse(string houseName){
@@ -394,6 +422,7 @@ void RemoveHouse(string houseName){
 
     delete[] houses;
 
+    //removes the house file
     string filename = houseName + ".txt";
     remove(filename.c_str());
 
