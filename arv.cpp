@@ -88,6 +88,7 @@ void CallFunctions(){
         MenuAlign("4. Exit", 40);
         cout << "\n" << setw(30) << "Enter Option: ";
         cin >> options;
+        cin.ignore();
 
         if(options == 1){
             NewHouse(EleCheck, conversion);
