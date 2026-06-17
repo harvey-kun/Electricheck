@@ -18,18 +18,21 @@ float ConversionRate = 0;
 void LoadConversionRate(float *conver);
 void SaveConversionRate(float *conver);
 
+//Main selection
+void NewHouse(ElectriCheck *EleCheck, float *conver);
+void ExistingHouse();
+void CallFunctions();
+
 //for the text output stuff
 void header(string txt);
 void MenuAlign(string text, int width);
 
+//Configuration and computation
 void ConfigureRate(float *conver);
+float compute(float *conver, float kwh, int time);
+
 void ShowApplianceUsage(string houseName);
 void RemoveHouse(string houseName);
-
-float compute(float *conver, float kwh, int time);
-void NewHouse(ElectriCheck *EleCheck, float *conver);
-void ExistingHouse();
-void CallFunctions();
 
 int main(){
     LoadConversionRate(&ConversionRate);
@@ -71,144 +74,34 @@ void SaveConversionRate(float *conver){
     }
 }
 
-void header(string txt){
-    int len = txt.length();
-    cout << "======================================================" << endl;
-    cout << "-" << setw(26 + len/2) << txt << setw(27 - len/2) << "-" << endl;
-    cout << "======================================================" << endl;
-}
+void CallFunctions(){
+    ElectriCheck *EleCheck = new ElectriCheck;
+    float *conversion = &ConversionRate;
+    int options = 0;
 
-void MenuAlign(string text, int width){
-    cout << setw((width + text.length()) / 2) << right << text << endl;
-}
+    do{
+        system("cls||clear");
+        header("ElectriCheck");
+        MenuAlign("1. New House", 45);
+        MenuAlign("2. Check Existing House", 56);
+        MenuAlign("3. Configure Utility Rates", 59);
+        MenuAlign("4. Exit", 40);
+        cout << "\n" << setw(30) << "Enter Option: ";
+        cin >> options;
 
-void ConfigureRate(float *conver){
-    system("cls||clear");
-    header("Configure Utility Rates");
-
-    int options=0;
-    cout << "Current Conversion Rate: " << *conver << endl;
-    cout << "1. Change Conversion Rate" << endl;
-    cout << "2. Exit" << endl;
-    cout << "\nEnter Option: ";
-    cin >> options;
-
-    if(options==1){
-        cout << "Enter New Conversion Rate: ";
-        cin >> *conver;
-        SaveConversionRate(conver);
-        cout << "Conversion rate updated successfully!" << endl;
-    }
-}
-
-void ShowApplianceUsage(string houseName){
-    system("cls||clear");
-    header("Appliance Usage");
-
-    string filename = houseName + ".txt";
-    ifstream HouseFile;
-    HouseFile.open(filename.c_str());
-
-    if(!HouseFile){
-        cout << "Could not open file for " << houseName << "." << endl;
-        cout << "\nPress Enter to return to menu";
-        cin.ignore();
-        cin.get();
-        return;
-    }
-
-    string line, appName, KWH, Usage;
-
-    cout << "House: " << houseName << endl;
-    cout << "------------------------------------------------------" << endl;
-    cout << left << setw(10) << "ID" << setw(15) << "Appliance" << setw(10) << "kWh" << setw(10) << "Time Usage" << endl;
-    cout << "------------------------------------------------------" << endl;
-
-    while(getline(HouseFile, line, ',')){
-        //reseter so it does not read the bill
-        appName = "";
-
-        getline(HouseFile, appName, ',');
-        getline(HouseFile, KWH, ',');
-        getline(HouseFile, Usage);
-
-        //check if the appliance name is empty so it can print the bill
-        if(appName.empty()){
-            cout << "------------------------------------------------------" << endl;
-            cout << "Total Bill: " << line << endl;
-            break;
+        if(options == 1){
+            NewHouse(EleCheck, conversion);
         }
-        cout << left << setw(10) << line << setw(15) << appName << setw(10) << KWH << setw(10) << Usage << endl;
-    }
-    HouseFile.close();
+        else if(options == 2){
+            ExistingHouse();
+        }
+        else if(options == 3){
+            ConfigureRate(conversion);
+        }
+    }while(options != 4);
 
-    cout << "\nPress Enter to return to menu";
-    cin.ignore();
-    cin.get();
-}
-
-void RemoveHouse(string houseName){
+    delete EleCheck;
     system("cls||clear");
-    header("Remove House");
-
-    ifstream CountFile;
-    CountFile.open("HouseNames.txt");
-
-    if(!CountFile){
-        cout << "HouseNames.txt not found." << endl;
-        cout << "\nPress Enter to return to menu";
-        cin.ignore();
-        cin.get();
-        return;
-    }
-
-    int count = 0;
-    string house;
-
-    while(getline(CountFile, house)){
-        if(house != "" && house != houseName){
-            count++;
-        }
-    }
-    CountFile.close();
-
-    string *houses = new string[count];
-
-    ifstream HouseName;
-    HouseName.open("HouseNames.txt");
-
-    int index = 0;
-    while(getline(HouseName, house)){
-        if(house != "" && house != houseName){
-            houses[index] = house;
-            index++;
-        }
-    }
-    HouseName.close();
-
-    ofstream UpdatedHouseName;
-    UpdatedHouseName.open("HouseNames.txt");
-
-    for(int i = 0; i < count; i++){
-        UpdatedHouseName << houses[i] << endl;
-    }
-    UpdatedHouseName.close();
-
-    delete[] houses;
-
-    string filename = houseName + ".txt";
-    remove(filename.c_str());
-
-    cout << houseName << " has been removed." << endl;
-    cout << "\nPress Enter to return to menu";
-    cin.ignore();
-    cin.get();
-}
-
-float compute(float *conver, float kwh, int time){
-    float cost = 0;
-    cost = *conver*(kwh*(time/60.0));
-    return cost;
 }
 
 void NewHouse(ElectriCheck *EleCheck, float *conver){
@@ -267,6 +160,7 @@ void NewHouse(ElectriCheck *EleCheck, float *conver){
     cin.get();
     delete[] Appliances;
 }
+
 
 void ExistingHouse(){
     system("cls||clear");
@@ -368,32 +262,142 @@ void ExistingHouse(){
     }
 }
 
-void CallFunctions(){
-    ElectriCheck *EleCheck = new ElectriCheck;
-    float *conversion = &ConversionRate;
-    int options = 0;
+void header(string txt){
+    int len = txt.length();
+    cout << "======================================================" << endl;
+    cout << "-" << setw(26 + len/2) << txt << setw(27 - len/2) << "-" << endl;
+    cout << "======================================================" << endl;
+}
 
-    do{
-        system("cls||clear");
-        header("ElectriCheck");
-        MenuAlign("1. New House", 45);
-        MenuAlign("2. Check Existing House", 56);
-        MenuAlign("3. Configure Utility Rates", 59);
-        MenuAlign("4. Exit", 40);
-        cout << "\n" << setw(30) << "Enter Option: ";
-        cin >> options;
+void MenuAlign(string text, int width){
+    cout << setw((width + text.length()) / 2) << right << text << endl;
+}
 
-        if(options == 1){
-            NewHouse(EleCheck, conversion);
-        }
-        else if(options == 2){
-            ExistingHouse();
-        }
-        else if(options == 3){
-            ConfigureRate(conversion);
-        }
-    }while(options != 4);
-
-    delete EleCheck;
+void ConfigureRate(float *conver){
     system("cls||clear");
+    header("Configure Utility Rates");
+
+    int options=0;
+    cout << "Current Conversion Rate: " << *conver << endl;
+    cout << "1. Change Conversion Rate" << endl;
+    cout << "2. Exit" << endl;
+    cout << "\nEnter Option: ";
+    cin >> options;
+
+    if(options==1){
+        cout << "Enter New Conversion Rate: ";
+        cin >> *conver;
+        SaveConversionRate(conver);
+        cout << "Conversion rate updated successfully!" << endl;
+    }
+}
+
+float compute(float *conver, float kwh, int time){
+    float cost = 0;
+    cost = *conver*(kwh*(time/60.0));
+    return cost;
+}
+
+void ShowApplianceUsage(string houseName){
+    system("cls||clear");
+    header("Appliance Usage");
+
+    string filename = houseName + ".txt";
+    ifstream HouseFile;
+    HouseFile.open(filename.c_str());
+
+    if(!HouseFile){
+        cout << "Could not open file for " << houseName << "." << endl;
+        cout << "\nPress Enter to return to menu";
+        cin.ignore();
+        cin.get();
+        return;
+    }
+
+    string line, appName, KWH, Usage;
+
+    cout << "House: " << houseName << endl;
+    cout << "------------------------------------------------------" << endl;
+    cout << left << setw(10) << "ID" << setw(15) << "Appliance" << setw(10) << "kW" << setw(10) << "Time Usage" << endl;
+    cout << "------------------------------------------------------" << endl;
+
+    while(getline(HouseFile, line, ',')){
+        //reseter so it does not read the bill
+        appName = "";
+
+        getline(HouseFile, appName, ',');
+        getline(HouseFile, KWH, ',');
+        getline(HouseFile, Usage);
+
+        //check if the appliance name is empty so it can print the bill
+        if(appName.empty()){
+            cout << "------------------------------------------------------" << endl;
+            cout << "Total Bill: " << line << endl;
+            break;
+        }
+        cout << left << setw(10) << line << setw(15) << appName << setw(10) << KWH << setw(10) << Usage << endl;
+    }
+    HouseFile.close();
+
+    cout << "\nPress Enter to return to menu";
+    cin.ignore();
+    cin.get();
+}
+
+void RemoveHouse(string houseName){
+    system("cls||clear");
+    header("Remove House");
+
+    ifstream CountFile;
+    CountFile.open("HouseNames.txt");
+
+    if(!CountFile){
+        cout << "HouseNames.txt not found." << endl;
+        cout << "\nPress Enter to return to menu";
+        cin.ignore();
+        cin.get();
+        return;
+    }
+
+    int count = 0;
+    string house;
+
+    while(getline(CountFile, house)){
+        if(house != "" && house != houseName){
+            count++;
+        }
+    }
+    CountFile.close();
+
+    string *houses = new string[count];
+
+    ifstream HouseName;
+    HouseName.open("HouseNames.txt");
+
+    int index = 0;
+    while(getline(HouseName, house)){
+        if(house != "" && house != houseName){
+            houses[index] = house;
+            index++;
+        }
+    }
+    HouseName.close();
+
+    ofstream UpdatedHouseName;
+    UpdatedHouseName.open("HouseNames.txt");
+
+    for(int i = 0; i < count; i++){
+        UpdatedHouseName << houses[i] << endl;
+    }
+    UpdatedHouseName.close();
+
+    delete[] houses;
+
+    string filename = houseName + ".txt";
+    remove(filename.c_str());
+
+    cout << houseName << " has been removed." << endl;
+    cout << "\nPress Enter to return to menu";
+    cin.ignore();
+    cin.get();
 }
