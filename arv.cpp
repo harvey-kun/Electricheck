@@ -31,42 +31,39 @@ void NewHouse(ElectriCheck *EleCheck, float *conver);
 void ExistingHouse();
 void CallFunctions();
 
-
-
 int main(){
     LoadConversionRate(&ConversionRate);
-
     CallFunctions();
-
     system("cls||clear");
     header("Program Closed.");
     return 0;
 }
 
-
 void LoadConversionRate(float *conver){
-    ifstream RateFile("conversion_rate.txt");
+    ifstream RateFile;
+    RateFile.open("conversion_rate.txt");
 
     if(RateFile){
         RateFile >> *conver;
-
         if(RateFile.fail()){
             *conver = 5;
         }
-
         RateFile.close();
     }
     else{
         *conver = 5;
+        RateFile.close();
 
-        ofstream NewRateFile("conversion_rate.txt");
+        ofstream NewRateFile;
+        NewRateFile.open("conversion_rate.txt");
         NewRateFile << *conver;
         NewRateFile.close();
     }
 }
 
 void SaveConversionRate(float *conver){
-    ofstream RateFile("conversion_rate.txt");
+    ofstream RateFile;
+    RateFile.open("conversion_rate.txt");
 
     if(RateFile){
         RateFile << *conver;
@@ -75,18 +72,18 @@ void SaveConversionRate(float *conver){
 }
 
 void header(string txt){
+    int len = txt.length();
     cout << "======================================================" << endl;
-    cout << "-" << setw(26 + txt.length()/2) << txt << setw(27 - txt.length()/2) << "-" << endl;
+    cout << "-" << setw(26 + len/2) << txt << setw(27 - len/2) << "-" << endl;
     cout << "======================================================" << endl;
 }
 
-void MenuAlign(string text, int width) {
+void MenuAlign(string text, int width){
     cout << setw((width + text.length()) / 2) << right << text << endl;
 }
 
 void ConfigureRate(float *conver){
     system("cls||clear");
-
     header("Configure Utility Rates");
 
     int options=0;
@@ -99,9 +96,7 @@ void ConfigureRate(float *conver){
     if(options==1){
         cout << "Enter New Conversion Rate: ";
         cin >> *conver;
-
         SaveConversionRate(conver);
-
         cout << "Conversion rate updated successfully!" << endl;
     }
 }
@@ -111,7 +106,8 @@ void ShowApplianceUsage(string houseName){
     header("Appliance Usage");
 
     string filename = houseName + ".txt";
-    ifstream HouseFile(filename.c_str());
+    ifstream HouseFile;
+    HouseFile.open(filename.c_str());
 
     if(!HouseFile){
         cout << "Could not open file for " << houseName << "." << endl;
@@ -137,7 +133,7 @@ void ShowApplianceUsage(string houseName){
         getline(HouseFile, Usage);
 
         //check if the appliance name is empty so it can print the bill
-        if(appName.empty()) {
+        if(appName.empty()){
             cout << "------------------------------------------------------" << endl;
             cout << "Total Bill: " << line << endl;
             break;
@@ -155,7 +151,8 @@ void RemoveHouse(string houseName){
     system("cls||clear");
     header("Remove House");
 
-    ifstream CountFile("HouseNames.txt");
+    ifstream CountFile;
+    CountFile.open("HouseNames.txt");
 
     if(!CountFile){
         cout << "HouseNames.txt not found." << endl;
@@ -173,30 +170,28 @@ void RemoveHouse(string houseName){
             count++;
         }
     }
-
     CountFile.close();
 
     string *houses = new string[count];
 
-    ifstream HouseName("HouseNames.txt");
+    ifstream HouseName;
+    HouseName.open("HouseNames.txt");
 
     int index = 0;
-
     while(getline(HouseName, house)){
         if(house != "" && house != houseName){
             houses[index] = house;
             index++;
         }
     }
-
     HouseName.close();
 
-    ofstream UpdatedHouseName("HouseNames.txt");
+    ofstream UpdatedHouseName;
+    UpdatedHouseName.open("HouseNames.txt");
 
     for(int i = 0; i < count; i++){
         UpdatedHouseName << houses[i] << endl;
     }
-
     UpdatedHouseName.close();
 
     delete[] houses;
@@ -205,14 +200,13 @@ void RemoveHouse(string houseName){
     remove(filename.c_str());
 
     cout << houseName << " has been removed." << endl;
-
     cout << "\nPress Enter to return to menu";
     cin.ignore();
     cin.get();
 }
 
 float compute(float *conver, float kwh, int time){
-    float cost=0;
+    float cost = 0;
     cost = *conver*(kwh*(time/60.0));
     return cost;
 }
@@ -221,45 +215,53 @@ void NewHouse(ElectriCheck *EleCheck, float *conver){
     system("cls||clear");
     header("New House");
     cout << "Current Conversion Rate: " << *conver << endl;
-    ofstream HouseName("HouseNames.txt", ios::app);
+
+    ofstream HouseName;
+    HouseName.open("HouseNames.txt", ios::app);
+
     cin.ignore();
     cout << "Enter House Name: ";
     getline(cin, EleCheck->house);
     HouseName << EleCheck->house << endl;
-    string Owner=EleCheck->house+".txt";
-    ofstream CurrentOwner(Owner);
+    HouseName.close();
 
-    int NumAppliances=0;
-    float totalBill=0;
+    string Owner = EleCheck->house + ".txt";
+    ofstream CurrentOwner;
+    CurrentOwner.open(Owner.c_str());
+
+    int NumAppliances = 0;
+    float totalBill = 0;
     cout << "Enter number of Appliances: ";
     cin >> NumAppliances;
     cin.ignore();
-    ElectriCheck *Appliances=new ElectriCheck[NumAppliances];
-    for(int i=0; i<NumAppliances; i++){
+
+    ElectriCheck *Appliances = new ElectriCheck[NumAppliances];
+    for(int i = 0; i < NumAppliances; i++){
         cout << "\nAppliance " << i+1 << endl;
         cout << "Enter Appliance Name: ";
-        getline(cin,Appliances[i].appliance);
-        cout << "Enter kWh: ";
+        getline(cin, Appliances[i].appliance);
+        cout << "Enter kW: ";
         cin >> Appliances[i].kWh;
         cout << "Enter use duration(Minutes): ";
         cin >> Appliances[i].time;
-        totalBill+=compute(conver, Appliances[i].kWh, Appliances[i].time);
-        CurrentOwner<<i+1<<","
-                    <<Appliances[i].appliance<<","
-                    <<Appliances[i].kWh<<","
-                    <<Appliances[i].time << endl;
+        totalBill += compute(conver, Appliances[i].kWh, Appliances[i].time);
+        CurrentOwner << i+1 << ","
+                     << Appliances[i].appliance << ","
+                     << Appliances[i].kWh << ","
+                     << Appliances[i].time << endl;
         cin.ignore();
     }
+
     system("cls||clear");
     cout << "--------------------------------------------------------" << endl;
     cout << left << setw(10) << "ID" << setw(15) << "Appliance" << setw(10) << "kW" << setw(10) << "Time Usage" << endl;
     cout << "--------------------------------------------------------" << endl;
-    for(int i=0; i<NumAppliances; i++){
+    for(int i = 0; i < NumAppliances; i++){
         cout << left << setw(10) << i+1 << setw(15) << Appliances[i].appliance << setw(10) << Appliances[i].kWh << setw(10) << Appliances[i].time << endl;
     }
     cout << "\n------------------------------------------------------" << endl;
-    cout << "Total Bill: " << totalBill << endl;
-    CurrentOwner<<totalBill<<endl;
+    cout << "Total Bill: " << fixed << setprecision(2) << totalBill << endl;
+    CurrentOwner << fixed << setprecision(2) << totalBill << endl;
     CurrentOwner.close();
     cout << "\nPress Enter to return to menu";
     cin.get();
@@ -270,7 +272,8 @@ void ExistingHouse(){
     system("cls||clear");
     header("Recorded Houses");
 
-    ifstream CountFile("HouseNames.txt");
+    ifstream CountFile;
+    CountFile.open("HouseNames.txt");
 
     if(!CountFile){
         cout << "No recorded houses found." << endl;
@@ -288,7 +291,6 @@ void ExistingHouse(){
             count++;
         }
     }
-
     CountFile.close();
 
     if(count == 0){
@@ -301,17 +303,16 @@ void ExistingHouse(){
 
     string *houses = new string[count];
 
-    ifstream HouseName("HouseNames.txt");
+    ifstream HouseName;
+    HouseName.open("HouseNames.txt");
 
     int index = 0;
-
     while(getline(HouseName, house)){
         if(house != ""){
             houses[index] = house;
             index++;
         }
     }
-
     HouseName.close();
 
     for(int i = 0; i < count; i++){
@@ -330,7 +331,6 @@ void ExistingHouse(){
     if(houseChoice < 1 || houseChoice > count){
         cout << "Invalid house number." << endl;
         delete[] houses;
-
         cout << "\nPress Enter to return to menu";
         cin.ignore();
         cin.get();
@@ -338,7 +338,6 @@ void ExistingHouse(){
     }
 
     string selectedHouse = houses[houseChoice - 1];
-
     delete[] houses;
 
     system("cls||clear");
